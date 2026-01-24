@@ -20,6 +20,18 @@ var products = []Product{
 	{ID: 3, Name: "Tablet", Price: 299.99, Stock: 15},
 }
 
+type Category struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+var categories = []Category{
+	{ID: 1, Name: "Electronics", Description: "Electronic devices and gadgets"},
+	{ID: 2, Name: "Home Appliances", Description: "Appliances for home use"},
+	{ID: 3, Name: "Books", Description: "Various kinds of books"},
+}
+
 func main() {
 
 	http.HandleFunc("/api/products", func(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +102,72 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "message": "Service is healthy"})
 	})
+
+	http.HandleFunc("/categories", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(categories)
+		case http.MethodPost:
+			var newCategory Category
+			err := json.NewDecoder(r.Body).Decode(&newCategory)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			newCategory.ID = len(categories) + 1
+			categories = append(categories, newCategory)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(newCategory)
+		}
+	})
+	//get category by id /categories/{id}
+	http.HandleFunc("/categories/", func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimPrefix(r.URL.Path, "/categories/")
+
+		if id == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			for _, category := range categories {
+				if fmt.Sprint(category.ID) == id {
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(category)
+					return
+				}
+			}
+			http.NotFound(w, r)
+		case http.MethodPut:
+			var updatedCategory Category
+			err := json.NewDecoder(r.Body).Decode(&updatedCategory)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			for i, category := range categories {
+				if fmt.Sprint(category.ID) == id {
+					categories[i] = updatedCategory
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(updatedCategory)
+					return
+				}
+			}
+			http.NotFound(w, r)
+		case http.MethodDelete:
+			for i, category := range categories {
+				if fmt.Sprint(category.ID) == id {
+					categories = append(categories[:i], categories[i+1:]...)
+					w.WriteHeader(http.StatusNoContent)
+					return
+				}
+			}
+			http.NotFound(w, r)
+		}
+	})
+
 	fmt.Println("Starting server on :8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
