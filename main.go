@@ -46,7 +46,7 @@ func main() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	if _, err := os.Stat(".env"); err != nil {
+	if _, err := os.Stat(".env"); err == nil {
 		viper.SetConfigFile(".env")
 		_ = viper.ReadInConfig()
 	}
@@ -56,18 +56,11 @@ func main() {
 		DatabaseURL: viper.GetString("DATABASE_URL"),
 	}
 
-	addr := "0.0.0.0:" + config.Port
-	fmt.Println("Server running di", addr)
-
-	err := http.ListenAndServe(addr, nil)
-	if err != nil {
-		fmt.Println("gagal running server", err)
-	}
-
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
+	fmt.Println("Success connected to database on:" + config.DatabaseURL)
 	defer conn.Close(context.Background())
 
 	// Example query to test connection
@@ -79,7 +72,7 @@ func main() {
 	log.Println("Connected to:", version)
 
 	//init db
-	db := database.InitDB(config.DatabaseURL)
+	db, err := database.InitDB(config.DatabaseURL)
 	if db == nil {
 		log.Fatal("Failed to initialize database")
 	}
@@ -90,6 +83,21 @@ func main() {
 	productHandler := handlers.NewProductHandler(productService)
 
 	http.HandleFunc("/api/products", productHandler.HandleProducts)
+	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
+
+	addr := "0.0.0.0:" + config.Port
+	fmt.Println("Server running di", addr)
+
+	err = http.ListenAndServe(addr, nil)
+	if err != nil {
+		fmt.Println("gagal running server", err)
+	}
+
+	// fmt.Println("Starting server on :" + config.Port)
+	// erro := http.ListenAndServe(":"+config.Port, nil)
+	// if erro != nil {
+	// 	fmt.Println("gagal running server", erro)
+	// }
 
 	// http.HandleFunc("/api/products", func(w http.ResponseWriter, r *http.Request) {
 	// 	switch r.Method {
@@ -224,10 +232,4 @@ func main() {
 			http.NotFound(w, r)
 		}
 	})
-
-	fmt.Println("Starting server on :" + config.Port)
-	erro := http.ListenAndServe(":"+config.Port, nil)
-	if erro != nil {
-		panic(erro)
-	}
 }
