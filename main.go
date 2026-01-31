@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"kasir-api/database"
@@ -14,7 +13,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/spf13/viper"
 )
 
@@ -56,21 +54,6 @@ func main() {
 		DatabaseURL: viper.GetString("DATABASE_URL"),
 	}
 
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
-	}
-	fmt.Println("Success connected to database on:" + config.DatabaseURL)
-	defer conn.Close(context.Background())
-
-	// Example query to test connection
-	var version string
-	if err := conn.QueryRow(context.Background(), "SELECT version()").Scan(&version); err != nil {
-		log.Fatalf("Query failed: %v", err)
-	}
-
-	log.Println("Connected to:", version)
-
 	//init db
 	db, err := database.InitDB(config.DatabaseURL)
 	if db == nil {
@@ -85,13 +68,13 @@ func main() {
 	http.HandleFunc("/api/products", productHandler.HandleProducts)
 	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
 
-	addr := "0.0.0.0:" + config.Port
-	fmt.Println("Server running di", addr)
+	// addr := "0.0.0.0:" + config.Port
+	// fmt.Println("Server running di", addr)
 
-	err = http.ListenAndServe(addr, nil)
-	if err != nil {
-		fmt.Println("gagal running server", err)
-	}
+	// err = http.ListenAndServe(addr, nil)
+	// if err != nil {
+	// 	fmt.Println("gagal running server", err)
+	// }
 
 	// fmt.Println("Starting server on :" + config.Port)
 	// erro := http.ListenAndServe(":"+config.Port, nil)
@@ -163,73 +146,88 @@ func main() {
 	// 		http.NotFound(w, r)
 	// 	}
 	// })
+
+	// http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Header().Set("Content-Type", "application/json")
+	// 	json.NewEncoder(w).Encode(map[string]string{"status": "OK", "message": "Service is healthy"})
+	// })
+
+	// http.HandleFunc("/categories", func(w http.ResponseWriter, r *http.Request) {
+	// 	switch r.Method {
+	// 	case http.MethodGet:
+	// 		w.Header().Set("Content-Type", "application/json")
+	// 		json.NewEncoder(w).Encode(categories)
+	// 	case http.MethodPost:
+	// 		var newCategory Category
+	// 		err := json.NewDecoder(r.Body).Decode(&newCategory)
+	// 		if err != nil {
+	// 			http.Error(w, err.Error(), http.StatusBadRequest)
+	// 			return
+	// 		}
+	// 		newCategory.ID = len(categories) + 1
+	// 		categories = append(categories, newCategory)
+	// 		w.Header().Set("Content-Type", "application/json")
+	// 		json.NewEncoder(w).Encode(newCategory)
+	// 	}
+	// })
+	// //get category by id /categories/{id}
+	// http.HandleFunc("/categories/", func(w http.ResponseWriter, r *http.Request) {
+	// 	id := strings.TrimPrefix(r.URL.Path, "/categories/")
+
+	// 	if id == "" {
+	// 		http.NotFound(w, r)
+	// 		return
+	// 	}
+
+	// 	switch r.Method {
+	// 	case http.MethodGet:
+	// 		for _, category := range categories {
+	// 			if fmt.Sprint(category.ID) == id {
+	// 				w.Header().Set("Content-Type", "application/json")
+	// 				json.NewEncoder(w).Encode(category)
+	// 				return
+	// 			}
+	// 		}
+	// 		http.NotFound(w, r)
+	// 	case http.MethodPut:
+	// 		var updatedCategory Category
+	// 		err := json.NewDecoder(r.Body).Decode(&updatedCategory)
+	// 		if err != nil {
+	// 			http.Error(w, err.Error(), http.StatusBadRequest)
+	// 			return
+	// 		}
+	// 		for i, category := range categories {
+	// 			if fmt.Sprint(category.ID) == id {
+	// 				categories[i] = updatedCategory
+	// 				w.Header().Set("Content-Type", "application/json")
+	// 				json.NewEncoder(w).Encode(updatedCategory)
+	// 				return
+	// 			}
+	// 		}
+	// 		http.NotFound(w, r)
+	// 	case http.MethodDelete:
+	// 		for i, category := range categories {
+	// 			if fmt.Sprint(category.ID) == id {
+	// 				categories = append(categories[:i], categories[i+1:]...)
+	// 				w.WriteHeader(http.StatusNoContent)
+	// 				return
+	// 			}
+	// 		}
+	// 		http.NotFound(w, r)
+	// 	}
+	// })
+
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "message": "Service is healthy"})
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "OK",
+			"message": "API Running",
+		})
 	})
+	fmt.Println("Server running di localhost:" + config.Port)
 
-	http.HandleFunc("/categories", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(categories)
-		case http.MethodPost:
-			var newCategory Category
-			err := json.NewDecoder(r.Body).Decode(&newCategory)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			newCategory.ID = len(categories) + 1
-			categories = append(categories, newCategory)
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(newCategory)
-		}
-	})
-	//get category by id /categories/{id}
-	http.HandleFunc("/categories/", func(w http.ResponseWriter, r *http.Request) {
-		id := strings.TrimPrefix(r.URL.Path, "/categories/")
-
-		if id == "" {
-			http.NotFound(w, r)
-			return
-		}
-
-		switch r.Method {
-		case http.MethodGet:
-			for _, category := range categories {
-				if fmt.Sprint(category.ID) == id {
-					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(category)
-					return
-				}
-			}
-			http.NotFound(w, r)
-		case http.MethodPut:
-			var updatedCategory Category
-			err := json.NewDecoder(r.Body).Decode(&updatedCategory)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			for i, category := range categories {
-				if fmt.Sprint(category.ID) == id {
-					categories[i] = updatedCategory
-					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(updatedCategory)
-					return
-				}
-			}
-			http.NotFound(w, r)
-		case http.MethodDelete:
-			for i, category := range categories {
-				if fmt.Sprint(category.ID) == id {
-					categories = append(categories[:i], categories[i+1:]...)
-					w.WriteHeader(http.StatusNoContent)
-					return
-				}
-			}
-			http.NotFound(w, r)
-		}
-	})
+	err = http.ListenAndServe(":"+config.Port, nil)
+	if err != nil {
+		fmt.Println("gagal running server")
+	}
 }
