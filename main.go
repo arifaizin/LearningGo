@@ -22,13 +22,7 @@ var products = []models.Product{
 	{ID: 3, Name: "Tablet", Price: 299.99, Stock: 15},
 }
 
-type Category struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-var categories = []Category{
+var categories = []models.Category{
 	{ID: 1, Name: "Electronics", Description: "Electronic devices and gadgets"},
 	{ID: 2, Name: "Home Appliances", Description: "Appliances for home use"},
 	{ID: 3, Name: "Books", Description: "Various kinds of books"},
@@ -67,6 +61,13 @@ func main() {
 
 	http.HandleFunc("/api/products", productHandler.HandleProducts)
 	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
+
+	categoryRepo := repositories.NewCategoryRepository(db)
+	categoryService := services.NewCategoryService(categoryRepo)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
+	http.HandleFunc("/api/categories", categoryHandler.HandleCategorys)
+	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
 
 	// addr := "0.0.0.0:" + config.Port
 	// fmt.Println("Server running di", addr)
