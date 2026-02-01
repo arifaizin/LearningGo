@@ -30,25 +30,25 @@ func (h *CategoryHandler) HandleCategorys(w http.ResponseWriter, r *http.Request
 }
 
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	products, err := h.service.GetAllCategories()
+	categories, err := h.service.GetAllCategories()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(products)
+	json.NewEncoder(w).Encode(categories)
 }
 
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var product models.Category
-	err := json.NewDecoder(r.Body).Decode(&product)
+	var category models.Category
+	err := json.NewDecoder(r.Body).Decode(&category)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.Create(&product)
+	err = h.service.Create(&category)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -56,7 +56,7 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(product)
+	json.NewEncoder(w).Encode(category)
 }
 
 // HandleCategoryByID - GET/PUT/DELETE /api/category/{id}
@@ -82,14 +82,14 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.GetByID(id)
+	category, err := h.service.GetByID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	json.NewEncoder(w).Encode(category)
 }
 
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -100,22 +100,22 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var product models.Category
-	err = json.NewDecoder(r.Body).Decode(&product)
+	var category models.Category
+	err = json.NewDecoder(r.Body).Decode(&category)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	product.ID = id
-	err = h.service.Update(&product)
+	category.ID = id
+	err = h.service.Update(&category)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(product)
+	json.NewEncoder(w).Encode(category)
 }
 
 // Delete - DELETE /api/categories/{id}
