@@ -59,15 +59,15 @@ func main() {
 	productService := services.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
-	http.HandleFunc("/api/products", productHandler.HandleProducts)
 	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
+	http.HandleFunc("/api/products", productHandler.HandleProducts)
 
 	categoryRepo := repositories.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
-	http.HandleFunc("/api/categories", categoryHandler.HandleCategorys)
 	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
+	http.HandleFunc("/api/categories", categoryHandler.HandleCategorys)
 
 	// addr := "0.0.0.0:" + config.Port
 	// fmt.Println("Server running di", addr)
