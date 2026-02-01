@@ -73,12 +73,12 @@ func (h *CategoryHandler) HandleCategoryByID(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// GetByID - GET /api/category/{id}
+// GetByID - GET /api/categories/{id}
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/categories/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		return
 	}
 
@@ -93,10 +93,10 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/categories/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		return
 	}
 
@@ -118,12 +118,12 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(product)
 }
 
-// Delete - DELETE /api/category/{id}
+// Delete - DELETE /api/categories/{id}
 func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/categories/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		return
 	}
 
