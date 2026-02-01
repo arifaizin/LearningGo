@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"kasir-api/models"
 	"kasir-api/services"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -42,8 +44,18 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
-	err := json.NewDecoder(r.Body).Decode(&product)
+	// Read raw body for debugging (helps on deployments where body may be empty)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		log.Println("Error reading request body:", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	log.Println("Raw request body:", string(body))
+
+	err = json.Unmarshal(body, &product)
+	if err != nil {
+		log.Println("JSON decode error:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
