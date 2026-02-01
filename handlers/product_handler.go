@@ -44,6 +44,10 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
+	// Log headers and content-length to help debug empty/truncated bodies
+	log.Println("Request headers:", r.Header)
+	log.Println("Content-Length:", r.ContentLength)
+
 	// Read raw body for debugging (helps on deployments where body may be empty)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
