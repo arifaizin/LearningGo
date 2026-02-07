@@ -15,11 +15,21 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (r *ProductRepository) GetAllProducts() ([]models.Product, error) {
+func (r *ProductRepository) GetAllProducts(name string) ([]models.Product, error) {
 	// Implement logic to get all products from the database
 	var products []models.Product
+
+	query := "SELECT id, name, price, stock FROM products"
+
+	var args []interface{}
+
+	if name != "" {
+		query += " WHERE name ILIKE $1"
+		args = append(args, "%"+name+"%")
+	}
+
 	// Example query (adjust according to your database schema)
-	rows, err := r.db.Query("SELECT id, name, price, stock FROM products")
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
