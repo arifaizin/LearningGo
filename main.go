@@ -76,6 +76,13 @@ func main() {
 
 	http.HandleFunc("/api/checkout", transactionHandler.HandleCheckout) // POST
 
+	// Report
+	reportRepo := repositories.NewReportRepository(db)
+	reportService := services.NewReportService(reportRepo)
+	reportHandler := handlers.NewReportHandler(reportService)
+
+	http.HandleFunc("/api/report/hari-ini", reportHandler.HandleDailyReport)
+
 	// addr := "0.0.0.0:" + config.Port
 	// fmt.Println("Server running di", addr)
 
